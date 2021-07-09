@@ -1,0 +1,13 @@
+#!/bin/sh
+## i put it in /usr/local/etc/
+
+if [ -e /usr/bin/trayer ]; then
+  trayer --expand true --widthtype request --transparent true --edge top --align right --height 16 --margin 75 &
+fi
+if [ -x /etc/rc.d/rc.networkmanager ]; then
+  nm-applet &
+fi
+if [ -e /usr/bin/xbindkeys ]; then
+  xbindkeys &
+fi
+

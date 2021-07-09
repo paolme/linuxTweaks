@@ -1,0 +1,28 @@
+{
+	"bootstrapped": true,
+	"in_process_packages":
+	[
+	],
+	"installed_packages":
+	[
+		"AutoPEP8",
+		"Clang Format",
+		"DashDoc",
+		"DoxyDoxygen",
+		"EasyClangComplete",
+		"EditorConfig",
+		"FileDiffs",
+		"Function Name Display",
+		"JsPrettier",
+		"LSP",
+		"LSP-typescript",
+		"MarkdownEditing",
+		"orgmode",
+		"Package Control",
+		"Persistent Status Bar Line Number",
+		"Remember Minimap Setting",
+		"SendToPasteBin",
+		"TodoTxt Syntax",
+		"Witness color scheme"
+	]
+}

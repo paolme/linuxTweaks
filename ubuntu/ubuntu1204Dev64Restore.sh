@@ -24,9 +24,7 @@ sudo apt-get update && sudo apt-get install skype ubuntu-restricted-extras libre
 
 sudo apt-get autoclean && sudo apt-get clean && sudo apt-get autoremove -y
 
-git config --global user.name "Ryan P.C. McQuen"
-git config --global user.email "ryan.q@linux.com"
-git config --global credential.helper cache
+curl https://raw.githubusercontent.com/ryanpcmcquen/linuxTweaks/master/gitSetup | sh
 
 # sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys BB901940
 # sudo apt-key adv --recv-keys --keyserver keyserver.ubuntu.com 614C4B38
@@ -43,4 +41,4 @@ cd ~/Downloads
 wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
 #wget http://c758482.r82.cf2.rackcdn.com/sublime-text_build-*_amd64.deb
 
-## sed -i "/^# deb .*partner/ s/^# //" /etc/apt/sources.list && apt-get update
+## sed -i.bak "/^# deb .*partner/ s/^# //" /etc/apt/sources.list && apt-get update

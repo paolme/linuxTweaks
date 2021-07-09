@@ -1,0 +1,13 @@
+#!/bin/sh
+## set old and new values,
+## then run as:
+## sh magicalXSET filenames
+
+XSETKEYDELAYOLD=
+XSETKEYRATEOLD=
+
+XSETKEYDELAYNEW=
+XSETKEYRATENEW=
+
+sed -i.bak "s@xset r rate $XSETKEYDELAYOLD $XSETKEYRATEOLD@xset r rate $XSETKEYDELAYNEW $XSETKEYRATENEW@g" "$@"
+

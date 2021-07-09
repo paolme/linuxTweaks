@@ -1,0 +1,172 @@
+#!/bin/sh
+## wifir v1.0.2 by ryanpcmcquen
+##
+## wifir, an easy way to WPA
+## pronounced wifi-er
+##
+## DOWNLOAD/INSTALL:
+## wget -N https://raw.githubusercontent.com/ryanpcmcquen/linuxTweaks/master/slackware/wifir -P /sbin/ && chmod +x /sbin/wifir
+##
+## put it in /sbin/ and chmod +x it,
+## it will be your new best friend
+##
+## to run wifir at boot, you can do:
+##  if [ -z "$(grep wifir /etc/rc.d/rc.local)" ]; then
+##    echo >> /etc/rc.d/rc.local
+##    echo "if [ -x /sbin/wifir ]; then" >> /etc/rc.d/rc.local
+##    echo "  /sbin/wifir" >> /etc/rc.d/rc.local
+##    echo "fi" >> /etc/rc.d/rc.local
+##    echo >> /etc/rc.d/rc.local
+##  fi
+##
+## for help on how to use it, run:
+##   wifir -h
+##
+
+## make sure we are root!
+if [ ! $UID = 0 ]; then
+  cat << EOF
+This script must be run as root.
+EOF
+  exit 1
+fi
+
+## check for networkmanager so we don't
+## have a conflict of interest
+[ -x /etc/rc.d/rc.networkmanager ] \
+  && echo \
+  && echo "NetworkManager conflicts with wifir, please disable it." \
+  && echo \
+  && exit 1
+
+## 9 times out of 10
+## this is 'wlan0', but when it is not
+## just run `wifir` like:
+##   WIFIRMACHINE=eth1 wifir
+##
+WIFIRMACHINE=${WIFIRMACHINE:-wlan0}
+WIFIRCONF="/etc/wifir/${1}.conf"
+
+wpa_wifir_connect_bot () {
+  pkill wpa_supplicant
+  rfkill unblock all
+  echo "Connecting to ${1} ... "
+  echo
+  wpa_supplicant -B -c "${1}" -i ${WIFIRMACHINE} -D wext
+  echo
+  dhclient -1 -v ${WIFIRMACHINE}
+  ## this will terminate the script,
+  ## and keep it from trying to connect
+  ## to another network after making a
+  ## successful connection
+  if [ $? -eq 0 ]; then
+    echo
+    echo "************"
+    echo "*          *"
+    echo "*  EUREKA  *"
+    echo "*          *"
+    echo "*   @  @   *"
+    echo "*          *"
+    echo "*  \    /  *"
+    echo "*   \__/   *"
+    echo "*          *"
+    echo "************"
+    echo
+    exit 0
+  else
+    echo
+    echo "************"
+    echo "*          *"
+    echo "*  FAILED  *"
+    echo "*          *"
+    echo "*   @  @   *"
+    echo "*    __    *"
+    echo "*   /  \   *"
+    echo "*  /    \  *"
+    echo "*          *"
+    echo "************"
+    echo
+  fi
+  echo
+}
+
+## make a place to store confs
+mkdir -p /etc/wifir/
+
+## give it some character
+echo "           _    __   _       "
+echo " __ __ __ (_)  / _| (_)  _ _ "
+echo " \ V  V / | | |  _| | | | '_|"
+echo "  \_/\_/  |_| |_|   |_| |_|  "
+echo "                             "
+
+## we must have an interface!
+ifconfig ${WIFIRMACHINE} up
+
+if [ -z "${1}" ]; then
+  ## attempt to connect to any previously stored configurations
+  for NETWORK in `find /etc/wifir/ -name *.conf`; do
+    ## check if network is in range
+    if [ "`iwlist ${WIFIRMACHINE} scan | grep $(basename $(echo ${NETWORK} | sed 's/\.conf//g'))`" ]; then
+      wpa_wifir_connect_bot ${NETWORK}
+    fi
+  done
+elif [ "${1}" = "-h" ]; then
+  echo
+  echo "Thank you for choosing wifir!"
+  echo
+  echo "To connect to a network, run:"
+  echo "  wifir \"ESSID\" \"PASSPHRASE\""
+  echo
+  echo "For instance, if you network was called 'foo',"
+  echo "and your passphrase was 'bar', the command:"
+  echo "  wifir \"foo\" \"bar\""
+  echo "would connect you to 'foo', and store the"
+  echo "configuration for foo in '/etc/wifir/foo.conf'."
+  echo
+  echo "If you have previously ran wifir, you may run"
+  echo "\`wifir\` (with no arguments), and it will"
+  echo "connect to any stored configurations in"
+  echo "'/etc/wifir/', that are in range."
+  echo
+  echo "You may also specify a network by name,"
+  echo "if the configuration is already stored, \`wifir\`"
+  echo "will try to connect to it."
+  echo
+  echo "If you want to connect to an open network, just run"
+  echo "\`wifir\` like so:"
+  echo "  wifir \"OPENNETWORKSSID\""
+  echo
+  echo "You may also run:"
+  echo "  wifir -s"
+  echo "To generate a list of wireless networks."
+  echo
+  echo "If you happen to have a strange wireless setup, you"
+  echo "may specify a device other than the default (wlan0),"
+  echo "like so:"
+  echo "  WIFIRMACHINE=eth1 wifir"
+  echo
+  exit 0
+elif [ "${1}" = "-s" ]; then
+  ## generate a list of networks
+  iwlist ${WIFIRMACHINE} scan | grep ESSID
+elif [ "${1}" ] && [ -z "${2}" ]; then
+  ## if the configuration does not exist,
+  ## assume it is an open network and generate
+  ## the necessary .conf
+  if [ -e ${WIFIRCONF} ]; then
+    wpa_wifir_connect_bot ${WIFIRCONF}
+  else
+    echo "network={" >> /etc/wifir/"${1}".conf
+    echo "        ssid=\"${1}\"" >> /etc/wifir/"${1}".conf
+    echo "        key_mgmt=NONE" >> /etc/wifir/"${1}".conf
+    echo "}" >> /etc/wifir/"${1}".conf
+    wpa_wifir_connect_bot ${WIFIRCONF}
+  fi
+elif [ "${2}" ]; then
+  wpa_passphrase "${1}" "${2}" > ${WIFIRCONF}
+  wpa_wifir_connect_bot ${WIFIRCONF}
+else
+  echo "You have supplied an invalid argument. Run \`wifir -h\` for help."
+  exit 1
+fi
